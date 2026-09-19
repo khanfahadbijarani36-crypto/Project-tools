@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://YOUR-DOMAIN.example/index.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/image-compressor.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/image-resizer.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/jpg-to-png.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/png-to-jpg.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/image-to-pdf.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/word-counter.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/about.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/contact.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/privacy.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/terms.html</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/disclaimer.html</loc></url>
+</urlset>

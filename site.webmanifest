@@ -1,0 +1,10 @@
+{
+  "name": "Project Tools",
+  "short_name": "Project Tools",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fc",
+  "theme_color": "#2563eb",
+  "description": "Free browser-based image and text utilities."
+}
