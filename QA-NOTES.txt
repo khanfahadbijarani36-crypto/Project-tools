@@ -14,3 +14,4 @@ Important manual launch tests still required:
 - Test very large images and low-memory devices.
 - Verify jsPDF CDN availability in the production hosting environment.
 - Replace placeholder domain and contact email.
+\nV4.3.1 IMAGE → PDF FIX\n- jsPDF is loaded on demand with jsDelivr + cdnjs fallback instead of relying on one CDN at page load.\n- JPG/PNG input is rasterized to a bounded JPEG canvas before jsPDF insertion for better mobile-browser compatibility.\n- PDF button is disabled while generation runs and restores automatically after success/failure.\n

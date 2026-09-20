@@ -141,7 +141,7 @@ header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0
 </section>
 <footer><div class="wrap foot"><div>© <span id="year"></span> Project Tools</div><div><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="about.html">About</a><a href="contact.html">Contact</a></div></div></footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const MAX=15*1024*1024, MAX_PIXELS=40000000;
@@ -184,7 +184,74 @@ $('#pngJpgBtn').onclick=async()=>{const f=files.pngJpgFile;if(!f){status('#pngJp
 $('#pngJpgReset').onclick=()=>{files.pngJpgFile=null;resetInput('pngJpgFile','pngJpgPreview','pngJpgMeta','pngJpgStatus')};
 
 setupZone('pdfFile',async f=>{const err=validateFile(f,['image/jpeg','image/png']);if(err){status('#pdfStatus',err,'error');return}files.pdf=f;try{const img=await loadImage(f);$('#pdfPreview').src=URL.createObjectURL(f);$('#pdfMeta').textContent=meta(img,f);clearStatus('#pdfStatus')}catch(e){status('#pdfStatus',e.message,'error')}});
-$('#pdfBtn').onclick=async()=>{const f=files.pdf;if(!f){status('#pdfStatus','Please choose an image first.','error');return}if(!window.jspdf){status('#pdfStatus','PDF library could not load. Check your internet connection and try again.','error');return}try{const img=await loadImage(f), {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:img.naturalWidth>img.naturalHeight?'landscape':'portrait',unit:'mm',format:'a4'});const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),m=10,aw=pw-2*m,ah=ph-2*m,scale=Math.min(aw/img.naturalWidth,ah/img.naturalHeight),w=img.naturalWidth*scale,h=img.naturalHeight*scale,x=(pw-w)/2,y=(ph-h)/2;pdf.addImage(img,f.type==='image/png'?'PNG':'JPEG',x,y,w,h,undefined,'FAST');pdf.save('image-to-pdf.pdf');status('#pdfStatus','PDF created successfully.','ok')}catch(e){status('#pdfStatus',e.message||'Could not create PDF.','error')}};
+function base64ToBytes(dataUrl){
+  const b64=dataUrl.split(',')[1]||'';
+  const raw=atob(b64);
+  const out=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);
+  return out;
+}
+function pdfAscii(s){return new TextEncoder().encode(s)}
+function buildJpegPdf(jpegBytes,imgW,imgH,pageW,pageH){
+  const margin=28.3464567;
+  const aw=pageW-2*margin, ah=pageH-2*margin;
+  const scale=Math.min(aw/imgW,ah/imgH);
+  const w=imgW*scale, h=imgH*scale, x=(pageW-w)/2, y=(pageH-h)/2;
+  const objects=[];
+  objects[1]=pdfAscii('<< /Type /Catalog /Pages 2 0 R >>');
+  objects[2]=pdfAscii('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  objects[3]=pdfAscii(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(2)} ${pageH.toFixed(2)}] /Resources << /XObject << /Im1 4 0 R >> >> /Contents 5 0 R >>`);
+  const imageHead=pdfAscii(`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`);
+  const imageTail=pdfAscii('\nendstream');
+  const imageObj=new Uint8Array(imageHead.length+jpegBytes.length+imageTail.length);
+  imageObj.set(imageHead,0); imageObj.set(jpegBytes,imageHead.length); imageObj.set(imageTail,imageHead.length+jpegBytes.length);
+  objects[4]=imageObj;
+  const content=`q\n${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im1 Do\nQ\n`;
+  const contentBytes=pdfAscii(content);
+  const contentHead=pdfAscii(`<< /Length ${contentBytes.length} >>\nstream\n`), contentTail=pdfAscii('endstream');
+  const contentObj=new Uint8Array(contentHead.length+contentBytes.length+contentTail.length);
+  contentObj.set(contentHead,0); contentObj.set(contentBytes,contentHead.length); contentObj.set(contentTail,contentHead.length+contentBytes.length);
+  objects[5]=contentObj;
+  const chunks=[]; const offsets=[0]; let total=0;
+  function push(b){chunks.push(b); total+=b.length}
+  push(pdfAscii('%PDF-1.4\n%\xFF\xFF\xFF\xFF\n'));
+  for(let i=1;i<=5;i++){
+    offsets[i]=total;
+    push(pdfAscii(`${i} 0 obj\n`)); push(objects[i]); push(pdfAscii('\nendobj\n'));
+  }
+  const xrefOffset=total;
+  push(pdfAscii(`xref\n0 6\n0000000000 65535 f \n`));
+  for(let i=1;i<=5;i++)push(pdfAscii(`${String(offsets[i]).padStart(10,'0')} 00000 n \n`));
+  push(pdfAscii(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`));
+  const out=new Uint8Array(total); let pos=0;
+  for(const c of chunks){out.set(c,pos);pos+=c.length}
+  return out;
+}
+$('#pdfBtn').onclick=async()=>{
+  const f=files.pdf;
+  if(!f){status('#pdfStatus','Please choose an image first.','error');return}
+  const btn=$('#pdfBtn'); const oldText=btn.textContent;
+  btn.disabled=true; btn.textContent='Creating PDF…';
+  try{
+    const img=await loadImage(f);
+    const maxSide=6000;
+    const ratio=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+    const cw=Math.max(1,Math.round(img.naturalWidth*ratio));
+    const ch=Math.max(1,Math.round(img.naturalHeight*ratio));
+    const canvas=document.createElement('canvas'); canvas.width=cw; canvas.height=ch;
+    const ctx=canvas.getContext('2d',{alpha:false});
+    if(!ctx)throw new Error('This browser could not prepare the image.');
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,cw,ch); ctx.drawImage(img,0,0,cw,ch);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.92);
+    const jpegBytes=base64ToBytes(dataUrl);
+    const landscape=img.naturalWidth>img.naturalHeight;
+    const pageW=landscape?841.89:595.28, pageH=landscape?595.28:841.89;
+    const pdfBytes=buildJpegPdf(jpegBytes,cw,ch,pageW,pageH);
+    downloadBlob(new Blob([pdfBytes],{type:'application/pdf'}),'image-to-pdf.pdf');
+    status('#pdfStatus','PDF created successfully.','ok');
+  }catch(e){status('#pdfStatus',e&&e.message?e.message:'Could not create PDF. Please try again.','error')}
+  finally{btn.disabled=false;btn.textContent=oldText}
+};
 $('#pdfReset').onclick=()=>{files.pdf=null;resetInput('pdfFile','pdfPreview','pdfMeta','pdfStatus')};
 
 function updateWords(){const v=$('#wordText').value;const words=v.trim()?v.trim().split(/\s+/u).length:0;$('#wordCount').textContent=words.toLocaleString();$('#charCount').textContent=v.length.toLocaleString();$('#lineCount').textContent=v? v.split(/\r\n|\r|\n/).length:0}
