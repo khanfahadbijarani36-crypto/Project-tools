@@ -1,49 +1,33 @@
-PROJECT TOOLS V3
-=================
-This is a development build, not the final production site.
+PROJECT TOOLS — CURRENT BUILD
+============================
+This package is the current GitHub Pages launch-preparation build.
 
-Important before launch:
-1. Choose and verify the final brand/domain.
-2. Replace YOUR-DOMAIN.example in canonical/sitemap references.
-3. Add a real project contact email.
-4. Test all tools on mobile and desktop browsers.
-5. Decide which analytics/advertising services, if any, will be used and update Privacy Policy accordingly.
-6. Verify the external jsPDF dependency and its version/licensing before production.
-7. Add more useful tools only after the first tools are stable.
+Current deployment
+------------------
+https://khanfahedbijarani36-crypto.github.io/Project-tools/
 
+Included tools
+---------------
+- Image Compressor
+- Image Resizer
+- JPG to PNG Converter
+- PNG to JPG Converter
+- Image to PDF Converter
+- Word Counter
 
-V3.1 ADDITIONS
-===============
-- Added crawlable individual pages for the six launch tools.
-- Added Open Graph metadata and basic WebSite structured data.
-- Added category navigation on the homepage.
-- Expanded sitemap template to include tool pages.
-- Added a clearer development/launch status note.
-- Kept the final domain intentionally unassigned.
+Launch-preparation updates
+---------------------------
+- Added deployment-specific canonical URLs and Open Graph URLs.
+- Added a live sitemap.xml and connected it from robots.txt.
+- Fixed GitHub Pages project-path asset references for the favicon and web manifest.
+- Made the web manifest scope/start URL relative to the project site.
+- Removed the duplicate homepage main-element ID and the redundant skip-link markup.
+- Kept the working tool implementations unchanged.
 
-V3.2 PRODUCTION-FOUNDATION FIXES
-=================================
-- Fixed the previous invalid jsPDF SRI placeholder that could block PDF generation.
-- PDF output now preserves PNG input as PNG when adding it to the PDF.
-- Added favicon and improved web app manifest.
-- Added related-tool navigation.
-- Added clearer local-processing wording.
-- Added a JavaScript-disabled notice.
-- Final domain/email/legal review is still required before public launch.
-
-V4 CONTENT & TRUST FOUNDATION
-=============================
-- Added a homepage FAQ section.
-- Added a dedicated Disclaimer page.
-- Added disclaimer links to the main legal pages.
-- Expanded sitemap template.
-- Added final-launch reminder for the real sitemap URL.
-- Kept all final-domain placeholders intentionally unresolved.
-
-V4.3 LAUNCH PREP
-================
-- SEO descriptions refreshed for the main and individual tool pages.
-- Accessibility skip links added.
-- robots.txt and sitemap-template.xml kept domain-neutral until the final domain is chosen.
-- Final launch still requires replacing YOUR-DOMAIN.example in canonical URLs, Open Graph URLs, robots.txt and sitemap-template.xml.
-- Before AdSense submission, deploy the site, test all six tools on mobile/desktop, add a real contact method, and verify every legal/navigation link.
+Before public launch
+--------------------
+1. Test every tool on Android Chrome and a desktop browser.
+2. Verify downloads and generated files.
+3. Add a real project contact email to Contact/Privacy if one is ready.
+4. If analytics, advertising or other third-party services are added, update the privacy information before enabling them.
+5. If a custom domain is added later, update canonical URLs, Open Graph URLs, robots.txt and sitemap.xml to that domain.

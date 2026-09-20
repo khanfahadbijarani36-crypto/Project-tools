@@ -1,17 +1,18 @@
-V4.2 QA UPDATE
-- Added keyboard-accessible upload/drop zones.
-- Added explicit JPG/PNG/WebP output selection to Image Resizer.
-- Added WebP output fallback error handling.
+CURRENT QA NOTES
+================
+Static/structural checks for this build:
+- All six launch tool pages are present.
+- Legal pages are present: About, Contact, Privacy, Terms, Disclaimer.
+- Deployment-specific canonical URLs are present on index and tool pages.
+- sitemap.xml points to the current GitHub Pages deployment.
+- robots.txt points to the current sitemap.
+- No YOUR-DOMAIN.example placeholders remain in live SEO files.
+- No duplicate IDs remain on the homepage main element.
+- GitHub Pages root-absolute favicon/manifest references have been changed to project-relative paths.
+- The Image → PDF implementation was not modified by the SEO cleanup.
 
-PROJECT TOOLS QA NOTES
-=======================
-Static JavaScript syntax check: PASSED with Node.js.
-Tool pages: present for all six launch tools.
-Legal pages: About, Contact, Privacy, Terms, Disclaimer present.
-SEO templates: canonical/OG/sitemap placeholders intentionally await final domain.
-Important manual launch tests still required:
-- Upload and download each supported format on Android Chrome and desktop Chrome/Firefox.
-- Test very large images and low-memory devices.
-- Verify jsPDF CDN availability in the production hosting environment.
-- Replace placeholder domain and contact email.
-\nV4.3.1 IMAGE → PDF FIX\n- jsPDF is loaded on demand with jsDelivr + cdnjs fallback instead of relying on one CDN at page load.\n- JPG/PNG input is rasterized to a bounded JPEG canvas before jsPDF insertion for better mobile-browser compatibility.\n- PDF button is disabled while generation runs and restores automatically after success/failure.\n
+Manual tests still recommended after deployment:
+- Upload/download supported formats on Android Chrome and desktop Chrome/Firefox.
+- Test large images and low-memory devices.
+- Check every navigation and legal link.
+- Open sitemap.xml and robots.txt on the deployed site.

@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-# Replace the placeholder with the final canonical domain after deployment.
-# Sitemap: https://YOUR-DOMAIN.example/sitemap.xml
+Sitemap: https://khanfahedbijarani36-crypto.github.io/Project-tools/sitemap.xml
