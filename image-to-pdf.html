@@ -1,42 +1,137 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Image to PDF Converter — Project Tools</title>
-<meta name="description" content="Convert a JPG or PNG image to a PDF online. Create a single A4 PDF directly in your browser.">
-<meta name="robots" content="index,follow">
-<link rel="canonical" href="https://YOUR-DOMAIN.example/image-to-pdf.html">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Image to PDF Converter — Project Tools">
-<meta property="og:description" content="Create an A4 PDF from a JPG or PNG image in your browser.">
-<meta property="og:url" content="https://YOUR-DOMAIN.example/image-to-pdf.html">
-<style>
-body{margin:0;background:#f7f8fc;color:#111827;font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-.wrap{max-width:860px;margin:auto;padding:32px 18px}
-.card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin-top:18px}
-a{color:#2563eb}.btn{display:inline-block;background:#2563eb;color:#fff;padding:11px 16px;border-radius:10px;text-decoration:none;font-weight:700}
-.muted{color:#667085}
-</style>
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-</head><body>
-<a class="skip-link" href="#main-content">Skip to content</a><div class="wrap">
-<a href="index.html">← Project Tools</a>
-<div class="card">
-<h1>Image to PDF Converter</h1>
-<p class="muted">Create an A4 PDF from a JPG or PNG image in your browser.</p>
-<p>Use the tool on the main Project Tools page. The current image tools process selected files in your browser rather than sending them to a Project Tools upload server.</p>
-<p><a class="btn" href="index.html#imgpdf">Open Image to PDF Converter</a></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF Converter - Project Tools</title>
+
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f7f8fc; color: #111827; margin: 0; padding: 20px; }
+        .wrap { max-width: 600px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb; }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        p { color: #4b5563; font-size: 14px; }
+        .drop-zone { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; margin: 16px 0; background: #fafafa; }
+        input[type="file"] { display: none; }
+        .btn { display: inline-block; background: #2563eb; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; border: none; cursor: pointer; font-size: 14px; margin-right: 8px; }
+        .btn-reset { background: #e5e7eb; color: #374151; }
+        .preview { margin-top: 16px; text-align: center; }
+        .preview img { max-width: 100%; max-height: 250px; border-radius: 6px; display: none; margin: 0 auto; }
+        .error { background: #fef2f2; color: #dc2626; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 12px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+    <a href="index.html" style="color: #2563eb; text-decoration: none; font-size: 14px;">&larr; Back to Home</a>
+    <h1>Image to PDF Converter</h1>
+    <p>Convert JPG or PNG image to a PDF file locally in your browser.</p>
+
+    <div class="drop-zone">
+        <label for="imageInput" class="btn">Choose Image</label>
+        <input type="file" id="imageInput" accept="image/png, image/jpeg">
+        <p id="fileName" style="margin-top: 8px; font-size: 12px;">JPG or PNG • max 15 MB</p>
+    </div>
+
+    <button id="convertBtn" class="btn" style="display:none;">Create PDF</button>
+    <button id="resetBtn" class="btn btn-reset" style="display:none;">Reset</button>
+
+    <div class="preview">
+        <img id="imgPreview" alt="Preview">
+    </div>
+
+    <div id="errorBox" class="error"></div>
 </div>
-<div class="card">
-<h2>About this tool</h2><p>Putting an image into a PDF can make it easier to print or submit as a document. The current tool creates a single A4 page for one image.</p><h2>How it works</h2>
-<ol>
-<li>Open the tool and choose your file or enter your text.</li>
-<li>Adjust the available options.</li>
-<li>Run the tool and download the result.</li>
-</ol>
-<h2>Before using the result</h2>
-<p>For important documents or images, keep your original file and check the downloaded result before submitting or publishing it.</p>
-<h2>Browser processing</h2>
-<p class="muted">The current prototype performs image operations locally in the browser. Browser/device memory and file format can affect the result.</p>
-</div>
-<p class="muted"><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="contact.html">Contact</a></p>
-</div></body></html>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const convertBtn = document.getElementById('convertBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const imgPreview = document.getElementById('imgPreview');
+    const fileName = document.getElementById('fileName');
+    const errorBox = document.getElementById('errorBox');
+
+    let loadedImgData = null;
+    let imgType = 'JPEG';
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 15 * 1024 * 1024) {
+            showError('File size exceeds 15 MB limit.');
+            return;
+        }
+
+        imgType = file.type === 'image/png' ? 'PNG' : 'JPEG';
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            loadedImgData = event.target.result;
+            imgPreview.src = loadedImgData;
+            imgPreview.style.display = 'block';
+            convertBtn.style.display = 'inline-block';
+            resetBtn.style.display = 'inline-block';
+            fileName.innerText = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+            hideError();
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    convertBtn.addEventListener('click', function() {
+        if (!loadedImgData) {
+            showError('Please select an image first.');
+            return;
+        }
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            
+            const img = new Image();
+            img.src = loadedImgData;
+            img.onload = function() {
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                let imgWidth = pdfWidth - 20;
+                let imgHeight = (img.height * imgWidth) / img.width;
+
+                if (imgHeight > pdfHeight - 20) {
+                    imgHeight = pdfHeight - 20;
+                    imgWidth = (img.width * imgHeight) / img.height;
+                }
+
+                pdf.addImage(loadedImgData, imgType, 10, 10, imgWidth, imgHeight);
+                pdf.save('converted-document.pdf');
+            };
+        } catch (err) {
+            showError('Failed to generate PDF: ' + err.message);
+        }
+    });
+
+    resetBtn.addEventListener('click', function() {
+        imageInput.value = '';
+        loadedImgData = null;
+        imgPreview.style.display = 'none';
+        convertBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
+        fileName.innerText = 'JPG or PNG • max 15 MB';
+        hideError();
+    });
+
+    function showError(msg) {
+        errorBox.innerText = msg;
+        errorBox.style.display = 'block';
+    }
+
+    function hideError() {
+        errorBox.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
